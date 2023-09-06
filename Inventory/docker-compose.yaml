@@ -1,0 +1,16 @@
+version: '4.0'
+
+services:
+  db_inventory: 
+    image: postgres
+    container_name: db_inventory
+    hostname: inventory
+    ports:
+      - ${DB_PORT:-5432}:5432
+    environment:
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
+      - POSTGRES_DB=${POSTGRES_DB:-postgres}
+#    volumes:
+#      - .:/var/lib/postgresql
+    restart: always
