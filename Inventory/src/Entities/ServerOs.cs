@@ -2,15 +2,15 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Inventory.Entities;
 
-[Index(nameof(Name))]
-[Index(nameof(Version))]
-public class ServerOs
+public class ServerOs : IEntities
 {
     public int Id { get; set; }
 
-    [Column(TypeName = "VARCHAR"), StringLength(32), Required]
-    public string Name { get; set; } = null!;
-    public double? Version { get; set; }
+    [Column(TypeName = "VARCHAR"), StringLength(32)]
+    public string? Name { get; set; } 
+    
+    [Column(TypeName = "VARCHAR"), StringLength(8)]
+    public string? Version { get; set; }
 
-    public ICollection<Server> Servers { get; set; } = null!;
+    public ICollection<Server>? Servers { get; set; }
 }
