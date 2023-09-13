@@ -1,5 +1,6 @@
 <configuration>
     <appSettings>
         <add key="DbDSN" value="host=localhost;port=5432;database=dbName;username=user;password=password"/>
+        <add key="PathToXlsxFiles" value="/Path/To/Xlsx/Files" />
     </appSettings>
 </configuration>    
