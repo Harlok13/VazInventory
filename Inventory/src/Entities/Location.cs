@@ -1,11 +1,11 @@
 namespace Inventory.Entities;
 
-public class Location
+public class Location : IEntities
 {
     public int Id { get; set; }
 
-    [Column(TypeName = "VARCHAR"), StringLength(64), Required]
-    public string LocationIn { get; set; } = null!;
+    [Column(TypeName = "VARCHAR"), StringLength(64)]
+    public string? LocationIn { get; set; }
 
     public ICollection<Server> Servers { get; set; } = null!;
 }
