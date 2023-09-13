@@ -1,6 +1,6 @@
 namespace Inventory.Entities;
 
-public class InformationSystem
+public class InformationSystem : IEntities
 {
     public int Id { get; set; }
 
