@@ -1,28 +1,26 @@
-using Inventory.Entities;
+using System.Collections.Immutable;
+using Inventory.Data.Context;
 using Inventory.ExcelProcessing;
-using static Inventory.Settings;
 
 namespace Inventory
 {
     class Program
     {
-        private static readonly Dictionary<string, IEntities> CacheDict = new();
-
         public static async Task Main(string[] args)
         {
-            await using var context = new Context(DbDSN);
+            await using var context = new InventoryContext(DbDSN);
 
             await context.CheckDbConnectionOrThrowAsync();
 
             var files = Directory.GetFiles(PathToXlsxFiles);
 
-            var filesList = files.Where(f => f.EndsWith("xlsx")).ToList();
+            var filesList = files.Where(f => f.EndsWith("xlsx")).ToImmutableArray();
 
             foreach (var file in filesList)
             {
                 var xlsx = new XlsxProcessing(PathToXlsxFiles, file);
 
-                await xlsx.SetServers(context, CacheDict);
+                await xlsx.SetServersAsync(context, InventoryContext.CacheDict);
             }
 
             await context.SaveChangesAsync();
