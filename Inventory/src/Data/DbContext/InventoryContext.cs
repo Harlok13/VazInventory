@@ -1,11 +1,13 @@
 using Inventory.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Inventory;
+namespace Inventory.Data;
 
-public sealed class Context : DbContext
+public sealed class InventoryContext : DbContext
 {
     private readonly string _connectionString;
+    
+    public static readonly Dictionary<string, IEntities> CacheDict = new();
     
     public DbSet<InformationSystem> InformationSystems { get; set; } = null!;
     public DbSet<Server> Servers { get; set; } = null!;
@@ -15,7 +17,7 @@ public sealed class Context : DbContext
     public DbSet<Contour> Contours { get; set; } = null!;
     public DbSet<Location> Locations { get; set; } = null!;
     
-    public Context(string connectionString)
+    public InventoryContext(string connectionString)
     {
         _connectionString = connectionString;
         
@@ -38,5 +40,4 @@ public sealed class Context : DbContext
         
         WriteLine("Database available");
     }
-    
 }
