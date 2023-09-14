@@ -1,4 +1,6 @@
 using Aspose.Cells;
+using Inventory.Data;
+using Inventory.Data.Entities;
 using Inventory.Entities;
 using static Inventory.Settings;
 
@@ -6,20 +8,17 @@ namespace Inventory.ExcelProcessing;
 
 public class XlsxProcessing
 {
-    private readonly string _fullFilePath; 
-
     private readonly Workbook _wb;
     private readonly Worksheet _sheet;
 
     public XlsxProcessing(string filePath, string fileName)
     {
-        _fullFilePath = Path.Combine(filePath, $"{fileName}");
-        _wb = new Workbook(_fullFilePath);
+        var fullFilePath = Path.Combine(filePath, $"{fileName}");
+        _wb = new Workbook(fullFilePath);
         _sheet = _wb.Worksheets[WorkSheetNum];
     }
 
-    public async Task SetServers(Context context,
-        Dictionary<string, IEntities> cacheDict)
+    public async Task SetServersAsync(InventoryContext context, Dictionary<string, IEntities> cacheDict)
     {
         for (int contour = 0; contour < Contours.Length; contour++)
         {
@@ -29,29 +28,33 @@ public class XlsxProcessing
 
                 var osName = GetValueOrNull(ServersInfoRows[contour][row], ServerOsNameCol);
                 var osVersion = GetValueOrNull(ServersInfoRows[contour][row], ServerOsVersionCol);
+                var osKey = $"{osName}{osVersion}";
+
                 var applicationName = GetValueOrNull(ServersInfoRows[contour][row], ServerApplicationNameCol);
                 var applicationVersion = GetValueOrNull(ServersInfoRows[contour][row], ServerApplicationVersionCol);
+                var applicationKey = $"{applicationName}{applicationVersion}";
+
                 var location = GetValueOrNull(ServersInfoRows[contour][row], ServerLocationCol);
 
                 if (CheckDomainIsNotNull(ServersInfoRows[contour][row]))
                 {
-                    SetContour(Contours[contour], cacheDict);
-                    SetServerKind(ServersKind[row], cacheDict);
-                    SetServerLocation(location, cacheDict);
-                    SetServerOs(osName, osVersion, cacheDict);
-                    SetServerApplication(applicationName, applicationVersion, cacheDict);
+                    TrySetContour(Contours[contour], cacheDict);
+                    TrySetServerKind(ServersKind[row], cacheDict);
+                    TrySetServerLocation(location, cacheDict);
+                    TrySetServerOs(osName, osVersion, osKey, cacheDict);
+                    TrySetServerApplication(applicationName, applicationVersion, applicationKey, cacheDict);
                     var code = SetInformationSystem(cacheDict);
 
                     await context.AddAsync(new Server
                     {
                         Contour = cacheDict[Contours[contour]] as Contour,
                         Domain = domainKey,
-                        ServerOs = cacheDict[$"{osName}{osVersion}"] as ServerOs,
+                        ServerOs = cacheDict[osKey] as ServerOs,
                         ServerKind = cacheDict[ServersKind[row]] as ServerKind,
                         Location = location != null && cacheDict.TryGetValue(location, out var record)
                             ? record as Location
                             : null,
-                        ServerApplication = cacheDict[$"{applicationName}{applicationVersion}"] as ServerApplication,
+                        ServerApplication = cacheDict[applicationKey] as ServerApplication,
                         InformationSystem = cacheDict[code] as InformationSystem
                     });
                 }
@@ -62,7 +65,7 @@ public class XlsxProcessing
     private bool CheckDomainIsNotNull(int serverRow)
     {
         var domainValue = _sheet.Cells.GetCell(serverRow, ServerDomainCol).StringValue;
-        return !(string.IsNullOrEmpty(domainValue) || domainValue.ToLower() == DomainMissingMessage);
+        return !(string.IsNullOrEmpty(domainValue) || !domainValue.Contains(DomainSearchWord));
     }
 
     private string? GetValueOrNull(int row, int col)
@@ -95,31 +98,16 @@ public class XlsxProcessing
     }
 
 
-    private void SetServerOs(string? name, string? version, Dictionary<string, IEntities> cacheDict)
-    {
-        string key = $"{name}{version}";
-        var recordExists = cacheDict.ContainsKey(key);
+    private bool TrySetServerOs(string? name, string? version, string osKey, Dictionary<string, IEntities> cacheDict) =>
+        cacheDict.TryAdd(osKey, new ServerOs { Name = name, Version = version });
 
-        if (!recordExists)
-        {
-            var newRecord = new ServerOs { Name = name, Version = version };
-            cacheDict.Add(key, newRecord);
-        }
-    }
 
-    private void SetServerApplication(string? name, string? version, Dictionary<string, IEntities> cacheDict)
-    {
-        var key = $"{name}{version}";
-        var recordExists = cacheDict.ContainsKey(key);
+    private bool TrySetServerApplication(string? name, string? version, string applicationKey,
+        Dictionary<string, IEntities> cacheDict) =>
+        cacheDict.TryAdd(applicationKey, new ServerApplication { Name = name, Version = version });
 
-        if (!recordExists)
-        {
-            var newRecord = new ServerApplication { Name = name, Version = version };
-            cacheDict.Add(key, newRecord);
-        }
-    }
 
-    private void SetServerLocation(string? location, Dictionary<string, IEntities> cacheDict)
+    private void TrySetServerLocation(string? location, Dictionary<string, IEntities> cacheDict)
     {
         var recordExists = location != null && cacheDict.ContainsKey(location);
 
@@ -130,25 +118,10 @@ public class XlsxProcessing
         }
     }
 
-    private void SetContour(string contour, Dictionary<string, IEntities> cacheDict)
-    {
-        var recordExists = cacheDict.ContainsKey(contour);
+    private bool TrySetContour(string contour, Dictionary<string, IEntities> cacheDict) =>
+        cacheDict.TryAdd(contour, new Contour { Name = contour });
 
-        if (!recordExists)
-        {
-            var newRecord = new Contour { Name = contour };
-            cacheDict.Add(contour, newRecord);
-        }
-    }
 
-    private void SetServerKind(string kindName, Dictionary<string, IEntities> cacheDict)
-    {
-        var recordExists = cacheDict.ContainsKey(kindName);
-        // if (!RecordInCache(kindName))
-        if (!recordExists)
-        {
-            var newRecord = new ServerKind { KindName = kindName };
-            cacheDict.Add(kindName, newRecord);
-        }
-    }
+    private bool TrySetServerKind(string kindName, Dictionary<string, IEntities> cacheDict) =>
+        cacheDict.TryAdd(kindName, new ServerKind { KindName = kindName });
 }
