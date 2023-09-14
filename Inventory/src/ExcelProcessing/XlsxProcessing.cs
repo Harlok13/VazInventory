@@ -6,14 +6,14 @@ namespace Inventory.ExcelProcessing;
 
 public class XlsxProcessing
 {
-    private readonly Workbook _wb;
     private readonly Worksheet _sheet;
 
     public XlsxProcessing(string filePath, string fileName)
     {
         var fullFilePath = Path.Combine(filePath, $"{fileName}");
-        _wb = new Workbook(fullFilePath);
-        _sheet = _wb.Worksheets[WorkSheetNum];
+        var wb = new Workbook(fullFilePath);
+
+        _sheet = wb.Worksheets[WorkSheetNum];
     }
 
     public async Task SetServersAsync(InventoryContext context, Dictionary<string, IEntities> cacheDict)
@@ -45,10 +45,10 @@ public class XlsxProcessing
 
                     await context.AddAsync(new Server
                     {
-                        Contour = cacheDict[Contours[contour]] as Contour,
+                        Contour = (cacheDict[Contours[contour]] as Contour)!,
                         Domain = domainKey,
                         ServerOs = cacheDict[osKey] as ServerOs,
-                        ServerKind = cacheDict[ServersKind[row]] as ServerKind,
+                        ServerKind = (cacheDict[ServersKind[row]] as ServerKind)!,
                         Location = location != null && cacheDict.TryGetValue(location, out var record)
                             ? record as Location
                             : null,
@@ -84,26 +84,17 @@ public class XlsxProcessing
             column: InformationSystemNameRowCol.Col
         ).StringValue;
 
-        var recordExists = cacheDict.ContainsKey(code);
-
-        if (!recordExists)
-        {
-            var newRecord = new InformationSystem { Code = code, Name = name };
-            cacheDict.Add(code, newRecord);
-        }
+        cacheDict.TryAdd(code, new InformationSystem { Code = code, Name = name });
 
         return code;
     }
 
-
     private bool TrySetServerOs(string? name, string? version, string osKey, Dictionary<string, IEntities> cacheDict) =>
         cacheDict.TryAdd(osKey, new ServerOs { Name = name, Version = version });
-
 
     private bool TrySetServerApplication(string? name, string? version, string applicationKey,
         Dictionary<string, IEntities> cacheDict) =>
         cacheDict.TryAdd(applicationKey, new ServerApplication { Name = name, Version = version });
-
 
     private void TrySetServerLocation(string? location, Dictionary<string, IEntities> cacheDict)
     {
@@ -118,7 +109,6 @@ public class XlsxProcessing
 
     private bool TrySetContour(string contour, Dictionary<string, IEntities> cacheDict) =>
         cacheDict.TryAdd(contour, new Contour { Name = contour });
-
 
     private bool TrySetServerKind(string kindName, Dictionary<string, IEntities> cacheDict) =>
         cacheDict.TryAdd(kindName, new ServerKind { KindName = kindName });
