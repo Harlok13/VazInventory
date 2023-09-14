@@ -1,7 +1,7 @@
-using Inventory.Entities;
+using Inventory.Data.Entities;
 using Microsoft.EntityFrameworkCore;
 
-namespace Inventory.Data;
+namespace Inventory.Data.Context;
 
 public sealed class InventoryContext : DbContext
 {
