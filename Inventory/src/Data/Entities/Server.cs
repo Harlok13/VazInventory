@@ -11,7 +11,7 @@ public class Server : IEntities
     public string Domain { get; set; } = null!;
     
     public int ContourId { get; set; }
-    public Contour? Contour { get; set; }
+    public Contour Contour { get; set; } = null!;
     
     public int? ServerOsId { get; set; }
     public ServerOs? ServerOs { get; set; }
@@ -20,7 +20,7 @@ public class Server : IEntities
     public ServerApplication? ServerApplication { get; set; }
 
     public int ServerKindId { get; set; }
-    public ServerKind? ServerKind { get; set; }
+    public ServerKind ServerKind { get; set; } = null!;
     
     public int? LocationId { get; set; }
     public Location? Location { get; set; } 

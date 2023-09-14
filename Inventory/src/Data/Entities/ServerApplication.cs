@@ -1,3 +1,5 @@
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+
 namespace Inventory.Data.Entities;
 
 public class ServerApplication : IEntities
@@ -6,6 +8,8 @@ public class ServerApplication : IEntities
 
     [Column(TypeName = "VARCHAR"), StringLength(32)]
     public string? Name { get; set; }
+    
+    [Column(TypeName = "VARCHAR"), StringLength(8)]
     public string? Version { get; set; }
 
     public ICollection<Server> Servers { get; set; } = null!;
