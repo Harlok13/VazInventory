@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Inventory.Entities;
+namespace Inventory.Data.Entities;
 
 public class Server : IEntities
 {
@@ -13,7 +13,7 @@ public class Server : IEntities
     public int ContourId { get; set; }
     public Contour? Contour { get; set; }
     
-    public string? ServerOsId { get; set; }
+    public int? ServerOsId { get; set; }
     public ServerOs? ServerOs { get; set; }
     
     public int? ServerApplicationId { get; set; }

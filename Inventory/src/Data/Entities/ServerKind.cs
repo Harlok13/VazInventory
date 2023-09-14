@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 
-namespace Inventory.Entities;
+namespace Inventory.Data.Entities;
 
 public class ServerKind : IEntities
 {

@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore;
-
-namespace Inventory.Entities;
+namespace Inventory.Data.Entities;
 
 public class ServerOs : IEntities
 {
@@ -12,5 +10,5 @@ public class ServerOs : IEntities
     [Column(TypeName = "VARCHAR"), StringLength(8)]
     public string? Version { get; set; }
 
-    public ICollection<Server>? Servers { get; set; }
+    public ICollection<Server>? Servers { get; set; } = null!;
 }
