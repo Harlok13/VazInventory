@@ -29,7 +29,7 @@ public static class Settings
 
     public static readonly string[] ServersKind = { "DBMS", "Frontend", "Backend", "API" };
 
-    public const string DomainMissingMessage = "отсутствует";
+    public const string DomainSearchWord = "vaz";
 
     public static readonly int ServerDomainCol = 2;
 
