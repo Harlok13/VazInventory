@@ -1,6 +1,7 @@
 using Aspose.Cells;
 using Inventory.Data.Context;
 using Inventory.Data.Entities;
+using Inventory.Data.Entities.Lanit;
 
 namespace Inventory.ExcelProcessing;
 
@@ -33,12 +34,13 @@ public class XlsxProcessing
                 var applicationKey = $"{applicationName}{applicationVersion}";
 
                 var location = GetValueOrNull(ServersInfoRows[contour][row], ServerLocationCol);
+                var locationKey = $"{location}";
 
                 if (CheckDomainIsNotNull(ServersInfoRows[contour][row]))
                 {
                     TrySetContour(Contours[contour], cacheDict);
                     TrySetServerKind(ServersKind[row], cacheDict);
-                    TrySetServerLocation(location, cacheDict);
+                    TrySetServerLocation(location, locationKey, cacheDict);
                     TrySetServerOs(osName, osVersion, osKey, cacheDict);
                     TrySetServerApplication(applicationName, applicationVersion, applicationKey, cacheDict);
                     var code = SetInformationSystem(cacheDict);
@@ -49,9 +51,7 @@ public class XlsxProcessing
                         Domain = domainKey,
                         ServerOs = cacheDict[osKey] as ServerOs,
                         ServerKind = (cacheDict[ServersKind[row]] as ServerKind)!,
-                        Location = location != null && cacheDict.TryGetValue(location, out var record)
-                            ? record as Location
-                            : null,
+                        Location = cacheDict[locationKey] as Location,
                         ServerApplication = cacheDict[applicationKey] as ServerApplication,
                         InformationSystem = cacheDict[code] as InformationSystem
                     });
@@ -96,16 +96,8 @@ public class XlsxProcessing
         Dictionary<string, IEntities> cacheDict) =>
         cacheDict.TryAdd(applicationKey, new ServerApplication { Name = name, Version = version });
 
-    private void TrySetServerLocation(string? location, Dictionary<string, IEntities> cacheDict)
-    {
-        var recordExists = location != null && cacheDict.ContainsKey(location);
-
-        if (!recordExists && location != null)
-        {
-            var newRecord = new Location { LocationIn = location };
-            cacheDict.Add(location, newRecord);
-        }
-    }
+    private bool TrySetServerLocation(string? location, string locationKey, Dictionary<string, IEntities> cacheDict) =>
+        cacheDict.TryAdd(locationKey, new Location { LocationIn = location });
 
     private bool TrySetContour(string contour, Dictionary<string, IEntities> cacheDict) =>
         cacheDict.TryAdd(contour, new Contour { Name = contour });
