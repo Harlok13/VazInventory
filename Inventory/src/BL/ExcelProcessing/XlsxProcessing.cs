@@ -120,9 +120,38 @@ class XlsxProcessing : IXlsxProcessing
     private bool TrySetContour(string contour, ICacheData cacheData) =>
         cacheData.TryAdd(contour, new Contour { Name = contour });
 
-    private bool TrySetContour(string contour, Dictionary<string, IEntities> cacheDict) =>
-        cacheDict.TryAdd(contour, new Contour { Name = contour });
+    private bool TrySetServerKind(string kindName, ICacheData cacheData) =>
+        cacheData.TryAdd(kindName, new ServerKind { KindName = kindName });
+    
+    private async Task SetLanitAsync(InventoryContext context, IExcelToDatabase excelToDatabase)
+    {
+        // TODO: fix, del try/catch
+        var maxRows = _sheet.Cells.MaxRow;
 
-    private bool TrySetServerKind(string kindName, Dictionary<string, IEntities> cacheDict) =>
-        cacheDict.TryAdd(kindName, new ServerKind { KindName = kindName });
+        for (var row = StartRow; row < maxRows; row++)
+        {
+            try
+            {
+                await excelToDatabase.AddDataToContextAsync(context, new Lanit
+                {
+                    Code = GetValueOrNull(_sheet.Cells.GetCell(row, LanitCodeCol).StringValue),
+                    Domain = GetValueOrNull(_sheet.Cells.GetCell(row, LanitDomainCol).StringValue),
+                    Name = GetValueOrNull(_sheet.Cells.GetCell(row, LanitSystemNameCol).StringValue),
+                    Integrations = GetValueOrNull(_sheet.Cells.GetCell(row, LanitIntegrationsCol).StringValue),
+                    ServersKind = GetValueOrNull(_sheet.Cells.GetCell(row, LanitServersKindCol).StringValue)
+                });
+
+            }
+            catch
+            {
+            }
+        }
+    }
+
+    private string? GetValueOrNull(string cell)
+    {
+        // TODO ref
+        return string.IsNullOrEmpty(cell) ? null : cell;
+    }
+
 }
