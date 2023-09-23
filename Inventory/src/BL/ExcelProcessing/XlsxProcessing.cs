@@ -1,17 +1,22 @@
 using Aspose.Cells;
-using Inventory.Data.Context;
-using Inventory.Data.Entities;
-using Inventory.Data.Entities.Lanit;
 
-namespace Inventory.ExcelProcessing;
+using Inventory.DAL.Cache;
+using Inventory.DAL.Context;
+using Inventory.DAL.Entities;
+using Inventory.DAL.Entities.Lanit;
+using Inventory.DAL.ExcelToDatabase;
 
-public class XlsxProcessing
+namespace Inventory.BL.ExcelProcessing;
+
+class XlsxProcessing : IXlsxProcessing
 {
     private readonly Worksheet _sheet;
+    private readonly string _fileName;
 
     public XlsxProcessing(string filePath, string fileName)
     {
-        var fullFilePath = Path.Combine(filePath, $"{fileName}");
+        _fileName = fileName;
+        var fullFilePath = Path.Combine(filePath, $"{_fileName}");
         var wb = new Workbook(fullFilePath);
 
         _sheet = wb.Worksheets[WorkSheetNum];
@@ -85,7 +90,8 @@ public class XlsxProcessing
         return string.IsNullOrEmpty(value) ? null : value;
     }
 
-    private string SetInformationSystem(Dictionary<string, IEntities> cacheDict)
+
+    private string SetInformationSystem(ICacheData cacheData)
     {
         var code = _sheet.Cells.GetCell(
             row: InformationSystemCodeRowCol.Row,
@@ -97,20 +103,22 @@ public class XlsxProcessing
             column: InformationSystemNameRowCol.Col
         ).StringValue;
 
-        cacheDict.TryAdd(code, new InformationSystem { Code = code, Name = name });
+        cacheData.TryAdd(code, new InformationSystem { Code = code, Name = name });
 
         return code;
     }
 
-    private bool TrySetServerOs(string? name, string? version, string osKey, Dictionary<string, IEntities> cacheDict) =>
-        cacheDict.TryAdd(osKey, new ServerOs { Name = name, Version = version });
+    private bool TrySetServerOs(string? name, string? version, string osKey, ICacheData cacheData) =>
+        cacheData.TryAdd(osKey, new ServerOs { Name = name, Version = version });
 
-    private bool TrySetServerApplication(string? name, string? version, string applicationKey,
-        Dictionary<string, IEntities> cacheDict) =>
+    private bool TrySetServerApplication(string? name, string? version, string applicationKey, ICacheData cacheDict) =>
         cacheDict.TryAdd(applicationKey, new ServerApplication { Name = name, Version = version });
 
-    private bool TrySetServerLocation(string? location, string locationKey, Dictionary<string, IEntities> cacheDict) =>
-        cacheDict.TryAdd(locationKey, new Location { LocationIn = location });
+    private bool TrySetServerLocation(string? location, string locationKey, ICacheData cacheData) =>
+        cacheData.TryAdd(locationKey, new Location { LocationIn = location });
+
+    private bool TrySetContour(string contour, ICacheData cacheData) =>
+        cacheData.TryAdd(contour, new Contour { Name = contour });
 
     private bool TrySetContour(string contour, Dictionary<string, IEntities> cacheDict) =>
         cacheDict.TryAdd(contour, new Contour { Name = contour });
