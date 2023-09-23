@@ -51,22 +51,22 @@ public class XlsxProcessing
 
                 if (CheckDomainIsNotNull(ServersInfoRows[contour][row]))
                 {
-                    TrySetContour(Contours[contour], cacheDict);
-                    TrySetServerKind(ServersKind[row], cacheDict);
-                    TrySetServerLocation(location, locationKey, cacheDict);
-                    TrySetServerOs(osName, osVersion, osKey, cacheDict);
-                    TrySetServerApplication(applicationName, applicationVersion, applicationKey, cacheDict);
-                    var code = SetInformationSystem(cacheDict);
+                    TrySetContour(Contours[contour], cacheData);
+                    TrySetServerKind(ServersKind[row], cacheData);
+                    TrySetServerLocation(location, locationKey, cacheData);
+                    TrySetServerOs(osName, osVersion, osKey, cacheData);
+                    TrySetServerApplication(applicationName, applicationVersion, applicationKey, cacheData);
+                    var code = SetInformationSystem(cacheData);
 
-                    await context.AddAsync(new Server
+                    await excelToDatabase.AddDataToContextAsync(context, new Server
                     {
-                        Contour = (cacheDict[Contours[contour]] as Contour)!,
+                        Contour = (cacheData.Get(Contours[contour]) as Contour)!,
                         Domain = domainKey,
-                        ServerOs = cacheDict[osKey] as ServerOs,
-                        ServerKind = (cacheDict[ServersKind[row]] as ServerKind)!,
-                        Location = cacheDict[locationKey] as Location,
-                        ServerApplication = cacheDict[applicationKey] as ServerApplication,
-                        InformationSystem = cacheDict[code] as InformationSystem
+                        ServerOs = cacheData.Get(osKey) as ServerOs,
+                        ServerKind = (cacheData.Get(ServersKind[row]) as ServerKind)!,
+                        Location = cacheData.Get(locationKey) as Location,
+                        ServerApplication = cacheData.Get(applicationKey) as ServerApplication,
+                        InformationSystem = cacheData.Get(code) as InformationSystem
                     });
                 }
             }
