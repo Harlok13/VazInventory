@@ -17,7 +17,20 @@ public class XlsxProcessing
         _sheet = wb.Worksheets[WorkSheetNum];
     }
 
-    public async Task SetServersAsync(InventoryContext context, Dictionary<string, IEntities> cacheDict)
+    public async Task StartAsync(InventoryContext context, IExcelToDatabase excelToDatabase, ICacheData cacheData)
+    {
+        // ref all
+        if (!_fileName.Equals(LanitFileName))
+        {
+            await SetServerAsync(context, excelToDatabase, cacheData);
+        }
+        else
+        {
+            await SetLanitAsync(context, excelToDatabase);
+        }
+    }
+    
+    private async Task SetServerAsync(InventoryContext context, IExcelToDatabase excelToDatabase, ICacheData cacheData)
     {
         for (int contour = 0; contour < Contours.Length; contour++)
         {
