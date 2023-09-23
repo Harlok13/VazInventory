@@ -1,4 +1,4 @@
-namespace Inventory.Data.Entities;
+namespace Inventory.DAL.Entities;
 
 public class Contour : IEntities
 {

@@ -1,6 +1,4 @@
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
-
-namespace Inventory.Data.Entities;
+namespace Inventory.DAL.Entities;
 
 public class ServerApplication : IEntities
 {
