@@ -1,6 +1,6 @@
 namespace Inventory.DAL.Entities;
 
-public interface IEntities
+public interface IEntity
 {
     
 }
