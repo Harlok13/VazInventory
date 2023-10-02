@@ -4,6 +4,6 @@ namespace Inventory.DAL.Cache;
 
 public interface ICacheData
 {
-    public bool TryAdd(string key, IEntities value);
-    public IEntities Get(string key);
+    public bool TryAdd<TType>(string key, TType value);
+    public IEntity Get<TType>(string key);
 }
