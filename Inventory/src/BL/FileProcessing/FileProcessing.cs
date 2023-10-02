@@ -1,15 +1,17 @@
 using System.Collections.Immutable;
+using Microsoft.EntityFrameworkCore;
+
+using Inventory.BL.CustomExceptions;
 using Inventory.BL.ExcelProcessing;
 using Inventory.DAL.Cache;
-using Inventory.DAL.Context;
 using Inventory.DAL.ExcelToDatabase;
 
 namespace Inventory.BL.FileProcessing;
 
-class FileProcessing : IFileProcessing
+public class FileProcessing : IFileProcessing
 {
     public async Task StartAsync(
-        InventoryContext context,
+        DbContext context,
         IExcelToDatabase excelToDatabase,
         ICacheData cacheData,
         ICollection<string> directoriesForParsing
@@ -28,19 +30,24 @@ class FileProcessing : IFileProcessing
             .Select(Path.GetFileName)
             .ToImmutableArray();
 
-        if (filesArray.Length == 0) throw new Exception("Missing files"); // InventoryFilesMissingException
+        if (filesArray.Length == 0)
+            throw new FileMissingException(
+                "It looks like you forgot to specify the correct path to the directory with files or the directory is empty.",
+                DateTime.Now
+            );
 
         return filesArray!;
     }
 
-    private async Task SetDataAsync(InventoryContext context, IExcelToDatabase excelToDatabase, string pathToFiles,
-        ICacheData cacheData)
+    private async Task SetDataAsync(
+        DbContext context,
+        IExcelToDatabase excelToDatabase, string pathToFiles,
+        ICacheData cacheData
+    )
     {
-        foreach (var file in GetFiles(pathToFiles))
+        foreach (var xlsxProcessing in GetFiles(pathToFiles).Select(file => new XlsxProcessing(pathToFiles, file)))
         {
-            var xlsx = new XlsxProcessing(pathToFiles, file);
-
-            await xlsx.StartAsync(context, excelToDatabase, cacheData);
+            await xlsxProcessing.StartAsync(context, excelToDatabase, cacheData);
         }
     }
 }
