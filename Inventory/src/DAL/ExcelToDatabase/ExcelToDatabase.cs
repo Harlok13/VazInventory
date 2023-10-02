@@ -1,11 +1,12 @@
-using Inventory.DAL.Context;
+using Microsoft.EntityFrameworkCore;
+
 using Inventory.DAL.Entities;
 
 namespace Inventory.DAL.ExcelToDatabase;
 
 public class ExcelToDatabase : IExcelToDatabase
 {
-    public async Task AddDataToContextAsync(InventoryContext context, IEntities? entity)
+    public async Task AddDataToContextAsync(DbContext context, IEntity? entity)
     {
         if (entity != null)
         {
