@@ -1,10 +1,11 @@
 using Aspose.Cells;
-
+using Inventory.BL.ModelValidation;
 using Inventory.DAL.Cache;
 using Inventory.DAL.Context;
 using Inventory.DAL.Entities;
 using Inventory.DAL.Entities.Lanit;
 using Inventory.DAL.ExcelToDatabase;
+using Microsoft.EntityFrameworkCore;
 
 namespace Inventory.BL.ExcelProcessing;
 
@@ -12,6 +13,7 @@ class XlsxProcessing : IXlsxProcessing
 {
     private readonly Worksheet _sheet;
     private readonly string _fileName;
+    private readonly IValidation _validation = new EntityValidation();
 
     public XlsxProcessing(string filePath, string fileName)
     {
@@ -22,7 +24,7 @@ class XlsxProcessing : IXlsxProcessing
         _sheet = wb.Worksheets[WorkSheetNum];
     }
 
-    public async Task StartAsync(InventoryContext context, IExcelToDatabase excelToDatabase, ICacheData cacheData)
+    public async Task StartAsync(DbContext context, IExcelToDatabase excelToDatabase, ICacheData cacheData)
     {
         // ref all
         if (!_fileName.Equals(LanitFileName))
@@ -35,7 +37,7 @@ class XlsxProcessing : IXlsxProcessing
         }
     }
     
-    private async Task SetServerAsync(InventoryContext context, IExcelToDatabase excelToDatabase, ICacheData cacheData)
+    private async Task SetServerAsync(DbContext context, IExcelToDatabase excelToDatabase, ICacheData cacheData)
     {
         for (int contour = 0; contour < Contours.Length; contour++)
         {
@@ -65,13 +67,13 @@ class XlsxProcessing : IXlsxProcessing
 
                     await excelToDatabase.AddDataToContextAsync(context, new Server
                     {
-                        Contour = (cacheData.Get(Contours[contour]) as Contour)!,
+                        Contour = (cacheData.Get<Contour>(Contours[contour]) as Contour)!,
                         Domain = domainKey,
-                        ServerOs = cacheData.Get(osKey) as ServerOs,
-                        ServerKind = (cacheData.Get(ServersKind[row]) as ServerKind)!,
-                        Location = cacheData.Get(locationKey) as Location,
-                        ServerApplication = cacheData.Get(applicationKey) as ServerApplication,
-                        InformationSystem = cacheData.Get(code) as InformationSystem
+                        ServerOs = cacheData.Get<ServerOs>(osKey) as ServerOs,
+                        ServerKind = (cacheData.Get<ServerKind>(ServersKind[row]) as ServerKind)!,
+                        Location = cacheData.Get<Location>(locationKey) as Location,
+                        ServerApplication = cacheData.Get<ServerApplication>(applicationKey) as ServerApplication,
+                        InformationSystem = cacheData.Get<InformationSystem>(code) as InformationSystem
                     });
                 }
             }
@@ -102,8 +104,11 @@ class XlsxProcessing : IXlsxProcessing
             row: InformationSystemNameRowCol.Row,
             column: InformationSystemNameRowCol.Col
         ).StringValue;
+        
+        var infSystem = new InformationSystem { Code = code, Name = name };
+        _validation.Validate(infSystem);
 
-        cacheData.TryAdd(code, new InformationSystem { Code = code, Name = name });
+        cacheData.TryAdd(code, infSystem);
 
         return code;
     }
@@ -123,7 +128,7 @@ class XlsxProcessing : IXlsxProcessing
     private bool TrySetServerKind(string kindName, ICacheData cacheData) =>
         cacheData.TryAdd(kindName, new ServerKind { KindName = kindName });
     
-    private async Task SetLanitAsync(InventoryContext context, IExcelToDatabase excelToDatabase)
+    private async Task SetLanitAsync(DbContext context, IExcelToDatabase excelToDatabase)
     {
         // TODO: fix, del try/catch
         var maxRows = _sheet.Cells.MaxRow;
